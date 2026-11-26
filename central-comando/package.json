@@ -1,0 +1,9 @@
+{
+  "name": "central-comando",
+  "version": "1.0.0",
+  "description": "Central de despacho naval con Service Discovery en HashiCorp Consul",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

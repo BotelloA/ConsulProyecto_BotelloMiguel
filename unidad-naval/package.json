@@ -1,0 +1,9 @@
+{
+  "name": "unidad-naval",
+  "version": "1.0.0",
+  "description": "Microservicio de unidad naval con auto-registro en HashiCorp Consul",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

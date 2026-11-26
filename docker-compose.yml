@@ -1,0 +1,116 @@
+services:
+  consul-server-1:
+    image: hashicorp/consul:latest
+    container_name: consul-server-1
+    hostname: consul-server-1
+    command: >
+      agent -server -ui
+      -node=consul-server-1
+      -bootstrap-expect=3
+      -client=0.0.0.0
+      -bind=0.0.0.0
+      -retry-join=consul-server-2
+      -retry-join=consul-server-3
+    ports:
+      - "8500:8500"
+    networks:
+      - red-naval
+
+  consul-server-2:
+    image: hashicorp/consul:latest
+    container_name: consul-server-2
+    hostname: consul-server-2
+    command: >
+      agent -server
+      -node=consul-server-2
+      -bootstrap-expect=3
+      -client=0.0.0.0
+      -bind=0.0.0.0
+      -retry-join=consul-server-1
+      -retry-join=consul-server-3
+    networks:
+      - red-naval
+
+  consul-server-3:
+    image: hashicorp/consul:latest
+    container_name: consul-server-3
+    hostname: consul-server-3
+    command: >
+      agent -server
+      -node=consul-server-3
+      -bootstrap-expect=3
+      -client=0.0.0.0
+      -bind=0.0.0.0
+      -retry-join=consul-server-1
+      -retry-join=consul-server-2
+    networks:
+      - red-naval
+
+  unidad-naval-1:
+    build: ./unidad-naval
+    container_name: unidad-naval-1
+    hostname: unidad-naval-1
+    environment:
+      - UNIT_ID=unidad-1
+      - UNIT_HOST=unidad-naval-1
+      - UNIT_NAME=Guardacostas Almirante Brown
+      - UNIT_TYPE=Guardacostas
+      - ZONE=Sector Norte
+      - CONSUL_HOST=consul-server-1
+    depends_on:
+      - consul-server-1
+    networks:
+      - red-naval
+
+  unidad-naval-2:
+    build: ./unidad-naval
+    container_name: unidad-naval-2
+    hostname: unidad-naval-2
+    environment:
+      - UNIT_ID=unidad-2
+      - UNIT_HOST=unidad-naval-2
+      - UNIT_NAME=Patrullera Patagonia
+      - UNIT_TYPE=Patrullera
+      - ZONE=Sector Centro
+      - CONSUL_HOST=consul-server-2
+    depends_on:
+      - consul-server-2
+    networks:
+      - red-naval
+
+  unidad-naval-3:
+    build: ./unidad-naval
+    container_name: unidad-naval-3
+    hostname: unidad-naval-3
+    environment:
+      - UNIT_ID=unidad-3
+      - UNIT_HOST=unidad-naval-3
+      - UNIT_NAME=Remolcador San Jorge
+      - UNIT_TYPE=Remolcador
+      - ZONE=Sector Sur
+      - CONSUL_HOST=consul-server-3
+    depends_on:
+      - consul-server-3
+    networks:
+      - red-naval
+
+  central-comando:
+    build: ./central-comando
+    container_name: central-comando
+    hostname: central-comando
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - CONSUL_HOSTS=consul-server-1,consul-server-2,consul-server-3
+    depends_on:
+      - consul-server-1
+      - unidad-naval-1
+      - unidad-naval-2
+      - unidad-naval-3
+    networks:
+      - red-naval
+
+networks:
+  red-naval:
+    driver: bridge
